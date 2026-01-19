@@ -1,8 +1,45 @@
 # Balanced Resonate-and-Fire neurons
-This is the source repository for the paper [Balanced Resonate-and-Fire Neurons](https://openreview.net/forum?id=dkdilv4XD4) [[Higuchi et al., 2024a]](/)
+This is the source repository for the paper [Balanced Resonate-and-Fire Neurons]([https://openreview.net/forum?id=dkdilv4XD4](https://proceedings.mlr.press/v235/higuchi24a.html)) [[Higuchi et al., 2024a]](/)
+
+- Higuchi, S., Kairat, S., Bohté, S. &amp; Otte, S.. (2024). Balanced Resonate-and-Fire Neurons. <i>Proceedings of the 41st International Conference on Machine Learning</i>, in <i>Proceedings of Machine Learning Research</i> 235:18305-18323 Available from https://proceedings.mlr.press/v235/higuchi24a.html.
+```
+@InProceedings{higuchi2024balanced,
+  title = 	 {Balanced Resonate-and-Fire Neurons},
+  author =       {Higuchi, Saya and Kairat, Sebastian and Boht{\'e}, Sander and Otte, Sebastian},
+  booktitle = 	 {Proceedings of the 41st International Conference on Machine Learning},
+  pages = 	 {18305--18323},
+  year = 	 {2024},
+  editor = 	 {Salakhutdinov, Ruslan and Kolter, Zico and Heller, Katherine and Weller, Adrian and Oliver, Nuria and Scarlett, Jonathan and Berkenkamp, Felix},
+  volume = 	 {235},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {21--27 Jul},
+  publisher =    {PMLR},
+  pdf = 	 {https://proceedings.mlr.press/v235/higuchi24a.html},
+}
+```
 
 # Abstract 
 The resonate-and-fire (RF) neuron, introduced over two decades ago, is a simple, efficient, yet biologically plausible spiking neuron model, which can extract frequency patterns within the time domain due to its resonating membrane dynamics. However, previous RF formulations suffer from intrinsic shortcomings that limit effective learning and prevent exploiting the principled advantage of RF neurons. Here, we introduce the balanced RF (BRF) neuron, which alleviates some of the intrinsic limitations of vanilla RF neurons and demonstrates its effectiveness within recurrent spiking neural networks (RSNNs) on various sequence learning tasks. We show that networks of BRF neurons achieve overall higher task performance, produce only a fraction of the spikes, and require significantly fewer parameters as compared to modern RSNNs. Moreover, BRF-RSNN consistently provide much faster and more stable training convergence, even when bridging many hundreds of time steps during backpropagation through time (BPTT). These results underscore that our BRF-RSNN is a strong candidate for future large-scale RSNN architectures, further lines of research in SNN methodology, and more efficient hardware implementations.
+
+### Understanding the convergence
+
+We further studied the training convergence of BRF model found reasons for its stable and fast convergence.
+
+- Higuchi, S., Bohté, S. &amp; Otte, S.. (2024). Understanding the Convergence in Balanced Resonate-and-Fire Neurons. <i>Austrian Symposium on AI, Robotics, and Vision (AIRoV)<i>, 1, 437–445. innsbruck university press. Available from https://ulb-dok.uibk.ac.at/ulbtirolfodok/download/pdf/12691798#page=454.
+
+```
+@inproceedings{higuchi2024understanding,
+  title        = {Understanding the Convergence in Balanced Resonate-and-Fire Neurons},
+  author       = {Higuchi, Saya and and Boht{\'e}, Sander and Otte, Sebastian},
+  year         = 2024,
+  booktitle    = {Austrian Symposium on AI, Robotics, and Vision (AIRoV)},
+  publisher    = {innsbruck university press},
+  series       = {Proceedings of Austrian Symposium on AI, Robotics, and Vision 2024},
+  volume       = 1,
+  pages        = {437--445},
+  pdf = 	 {https://ulb-dok.uibk.ac.at/ulbtirolfodok/download/pdf/12691798},
+}
+```
 
 ## Resonate-and-Fire neurons
 First introduced by Izhikevich (2001), the dampened oscillatory behavior of biological neurons are simplified as the resonate-and-fire neurons. Each RF neuron has it's own oscillatory eigen-frequency (angular frequncy, omega) and resonates with similar input frequencies. Here is a simulation of how an RF neuron behaves when injected with input frequency similar to its eigen-frequency. 
@@ -38,42 +75,6 @@ The BRF-RSNN consistently yielded better performance and spiking sparsity compar
 Dots on the figure show at which epoch the model learned 95% of the final saved accuracy.
 
 ![conv_rf_brf_alif](https://github.com/AdaptiveAILab/brf-neurons/assets/64919377/5cb769c9-cac9-4c95-9b6d-2c4bd4380b38)
-
-
-### Understanding the convergence
-
-In ongoing research [[Higuchi, Bohté, and Otte, 2024]]() we studied the training convergence of BRF model found that a reason for its stable and fast convergence
-
-
-## Publications and BibTeX 
-
-- Saya Higuchi, Sebastian Kairat, Sander M. Bohté, and Sebastian Otte (2024). **Balanced Resonate-and-Fire Neurons**. *International Conference on Machine Learning (ICML)*. Accepted for publication. arXiv preprint [arXiv:2402.14603](https://arxiv.org/abs/2402.14603).
-
-```
-@misc{higuchi2024balanced,
-      title={Balanced Resonate-and-Fire Neurons}, 
-      author={Saya Higuchi and Sebastian Kairat and Sander M. Bohte and Sebastian Otte},
-      year={2024},
-      eprint={2402.14603},
-      archivePrefix={arXiv},
-      primaryClass={cs.NE}
-}
-```
-
-
-- Saya Higuchi, Sander M. Bohté, and Sebastian Otte (2024). **Understanding the Convergence in Balanced Resonate-and-Fire Neurons**. *First Austrian Symposium on AI, Robotics, and Vision*. Accepted for publication. arXiv preprint [arXiv:2406.00389](https://arxiv.org/abs/2406.00389).
-
-
-```
-@misc{higuchi2024understanding,
-      title={Understanding the Convergence in Balanced Resonate-and-Fire Neurons}, 
-      author={Saya Higuchi and Sander M. Bohte and Sebastian Otte},
-      year={2024},
-      eprint={2406.00389},
-      archivePrefix={arXiv},
-      primaryClass={cs.NE}
-}
-```
 
 ## Guide 
 
