@@ -34,7 +34,7 @@ PERMUTED = False
 # Change neuron type manually for different models
 # VRF: vanilla RF neuron set to: no reset mechanisms.
 # Manually change rf_update at snn/modules/rf for other reset types
-neuron = "vrf"  # "vrf", "brf" or "alif"
+neuron = "alif"  # "vrf", "brf" or "alif"
 
 sequence_length = 28 * 28
 input_size = 1
