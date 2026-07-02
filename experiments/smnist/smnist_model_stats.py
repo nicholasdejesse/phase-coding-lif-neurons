@@ -162,6 +162,7 @@ else:
     permuted_idx = torch.arange(sequence_length)
 
 PATH = "./models/" + models_str[0]
+
 checkpoint = torch.load(PATH, map_location=device)
 model.load_state_dict(checkpoint['model_state_dict'])
 
