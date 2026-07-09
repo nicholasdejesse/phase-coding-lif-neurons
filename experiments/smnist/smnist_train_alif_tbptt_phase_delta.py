@@ -33,11 +33,15 @@ print(device)
 ################################################################
 
 PERMUTED = False
+DELTA_BASE_THRESHOLD = 0.3
+OSCILLATE_THRESHOLD = True
+DELTA_WAVE_AMPLITUDE = 0.2
+DELTA_WAVE_FREQUENCY = 7 # In terms of time steps (i.e. one full oscillation completed at this timestep)
+
 label_last = True
 
-NUM_BITS = 8  # bit-depth per pixel
 sequence_length = 28 * 28
-encoded_sequence_length = sequence_length * NUM_BITS
+encoded_sequence_length = sequence_length
 input_size = 1
 num_classes = 10
 batch_size = 256  # (256 from Yin et al. 2021)
@@ -50,7 +54,7 @@ test_batch_size = 256
 train_dataset = torchvision.datasets.MNIST(
     root="data",
     train=True,
-    transform=torchvision.transforms.PILToTensor(),
+    transform=torchvision.transforms.ToTensor(),
     download=True
 )
 
@@ -67,7 +71,7 @@ train_dataset, val_dataset = random_split(
 test_dataset = torchvision.datasets.MNIST(
     root="data",
     train=False,
-    transform=torchvision.transforms.PILToTensor()
+    transform=torchvision.transforms.ToTensor()
 )
 
 
@@ -97,27 +101,6 @@ test_loader = DataLoader(
     shuffle=False
 )
 
-def binary_phase_encode(tensor: torch.Tensor, num_bits: int):
-    """
-    tensor: [seq_len, batch, input_size], integer-valued in [0, 255] (uint8 or long)
-    num_bits: number of bits to extract (<=8 for raw MNIST pixels; use 8 for lossless)
-    """
-    seq_len, batch, in_size = tensor.shape
-    device_ = tensor.device
-
-    levels = tensor.long()
-    if num_bits < 8:
-        # if using fewer than 8 bits, keep the MOST significant bits
-        # (drop low-order bits rather than rescaling/rounding)
-        levels = levels >> (8 - num_bits)
-    levels = levels.clamp(0, 2**num_bits - 1)
-
-    shifts = torch.arange(num_bits - 1, -1, -1, device=device_)
-    bits = ((levels.unsqueeze(-1) >> shifts) & 1).float()
-    spikes = bits.permute(0, 3, 1, 2).reshape(seq_len * num_bits, batch, in_size)
-
-    return spikes
-
 def smnist_transform_input_batch(
         tensor: torch.Tensor,
         sequence_length_: int,
@@ -125,10 +108,18 @@ def smnist_transform_input_batch(
         input_size_: int,
         permuted_idx_: torch.Tensor
 ):
-    tensor = tensor.to(device=device).view(batch_size_, sequence_length_, input_size_)
-    tensor = tensor.permute(1, 0, 2)
+    tensor = tensor.view(batch_size_, sequence_length_, input_size_) # BxTxC
+    tensor = tensor.permute(1, 0, 2) # TxBxC
     tensor = tensor[permuted_idx_, :, :]
-    tensor = binary_phase_encode(tensor, NUM_BITS)
+    # Get delta between time steps
+    tensor = tensor - tensor.roll(1, 0)
+    tensor[0, :, :] = 0
+    if OSCILLATE_THRESHOLD:
+        sin = torch.sin(2 * torch.pi * torch.arange(sequence_length_, dtype=torch.float64) / DELTA_WAVE_FREQUENCY)
+        sin = DELTA_WAVE_AMPLITUDE * sin
+        sin = sin[:, None, None].expand(-1, batch_size_, input_size_)
+        tensor = tensor - sin
+    tensor = torch.where(tensor > DELTA_BASE_THRESHOLD, 1, 0)
     return tensor
 
 ################################################################
@@ -215,15 +206,15 @@ start_time = datetime.now().strftime("%m-%d_%H-%M-%S")
 # PSMNIST fixed random permutation
 if PERMUTED:
     permuted_idx = torch.randperm(sequence_length)
-    torch.save(permuted_idx, './models/{}'.format(start_time) + comment + '_permuted_idx.pt')
+    torch.save(permuted_idx, './models/{}'.format(start_time) + comment + '_binary_phase_permuted_idx.pt')
     print(permuted_idx)
 else:
     permuted_idx = torch.arange(sequence_length)
 
 print(start_time, comment)
 
-save_path = "models/{}_".format(start_time) + opt_str + "," + net_str + "," + unit_str + "_phase.pt"
-save_init_path = "models/{}_init_".format(start_time) + opt_str + "," + net_str + "," + unit_str + "_phase.pt"
+save_path = "models/{}_".format(start_time) + opt_str + "," + net_str + "," + unit_str + "_binary_phase.pt"
+save_init_path = "models/{}_init_".format(start_time) + opt_str + "," + net_str + "," + unit_str + "_binary_phase.pt"
 
 # save initial parameters for analysis
 torch.save({'model_state_dict': model.state_dict()}, save_init_path)
