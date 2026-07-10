@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader, random_split
 import tools
 from datetime import datetime
 import math
+import argparse
 
 import sys
 sys.path.append("../..")
@@ -29,14 +30,27 @@ else:
 print(device)
 
 ################################################################
+# Argparse
+################################################################
+
+parser = argparse.ArgumentParser(description="Train ALIF RNN with phase delta coding.")
+
+parser.add_argument("--delta-base-threshold", type=float, default=0.5)
+parser.add_argument("--delta-wave-amplitude", type=float, default=0.4)
+parser.add_argument("--delta-wave-frequency", type=int, default=28 * 2) # In terms of time steps (i.e. one full oscillation completed at this timestep)
+parser.add_argument("--oscillate-threshold", action="store_true", help="Whether to oscillate the threshold or not.")
+
+args = parser.parse_args()
+
+################################################################
 # Data loading and preparation, logging
 ################################################################
 
 PERMUTED = False
-DELTA_BASE_THRESHOLD = 0.3
-OSCILLATE_THRESHOLD = True
-DELTA_WAVE_AMPLITUDE = 0.2
-DELTA_WAVE_FREQUENCY = 7 # In terms of time steps (i.e. one full oscillation completed at this timestep)
+DELTA_BASE_THRESHOLD = args.delta_base_threshold
+DELTA_WAVE_AMPLITUDE = args.delta_wave_amplitude
+DELTA_WAVE_FREQUENCY = args.delta_wave_frequency
+OSCILLATE_THRESHOLD = args.oscillate_threshold
 
 label_last = True
 
@@ -108,20 +122,43 @@ def smnist_transform_input_batch(
         input_size_: int,
         permuted_idx_: torch.Tensor
 ):
-    tensor = tensor.view(batch_size_, sequence_length_, input_size_) # BxTxC
-    tensor = tensor.permute(1, 0, 2) # TxBxC
-    tensor = tensor[permuted_idx_, :, :]
-    # Get delta between time steps
-    tensor = tensor - tensor.roll(1, 0)
-    tensor[0, :, :] = 0
-    if OSCILLATE_THRESHOLD:
-        sin = torch.sin(2 * torch.pi * torch.arange(sequence_length_, dtype=torch.float64) / DELTA_WAVE_FREQUENCY)
-        sin = DELTA_WAVE_AMPLITUDE * sin
-        sin = sin[:, None, None].expand(-1, batch_size_, input_size_)
-        tensor = tensor - sin
-    tensor = torch.where(tensor > DELTA_BASE_THRESHOLD, 1, 0)
-    return tensor
+    tensor = tensor.view(batch_size_, sequence_length_, input_size_)  # BxTxC
+    tensor = tensor.permute(1, 0, 2)  # TxBxC
+    tensor = tensor[permuted_idx_.to(device), :, :]
 
+    # Delta between time steps
+    tensor = tensor - tensor.roll(1, 0)
+    tensor[0] = 0
+
+    if OSCILLATE_THRESHOLD:
+        wave = torch.sin(
+            2 * torch.pi *
+            torch.arange(
+                sequence_length_,
+                device=device,
+                dtype=tensor.dtype
+            ) / DELTA_WAVE_FREQUENCY
+        )
+
+        threshold = DELTA_BASE_THRESHOLD - DELTA_WAVE_AMPLITUDE * wave
+        threshold = threshold[:, None, None].expand(-1, batch_size_, input_size_)
+    else:
+        threshold = DELTA_BASE_THRESHOLD
+
+    pos_spike = torch.where(
+        tensor > threshold,
+        torch.ones_like(tensor),
+        torch.zeros_like(tensor)
+    )
+
+    neg_spike = torch.where(
+        tensor < -threshold,
+        -torch.ones_like(tensor),
+        torch.zeros_like(tensor)
+    )
+
+    return pos_spike + neg_spike
+    
 ################################################################
 # Model helpers and model setup
 ################################################################
@@ -213,8 +250,9 @@ else:
 
 print(start_time, comment)
 
-save_path = "models/{}_".format(start_time) + opt_str + "," + net_str + "," + unit_str + "_binary_phase.pt"
-save_init_path = "models/{}_init_".format(start_time) + opt_str + "," + net_str + "," + unit_str + "_binary_phase.pt"
+save_path_osc = "_binary_phase_oscillate.pt" if OSCILLATE_THRESHOLD else "_binary_phase.pt"
+save_path = "./experiments/smnist/models/{}_".format(start_time) + opt_str + "," + net_str + "," + unit_str + save_path_osc
+save_init_path = "./experiments/smnist/models/{}_init_".format(start_time) + opt_str + "," + net_str + "," + unit_str + save_path_osc
 
 # save initial parameters for analysis
 torch.save({'model_state_dict': model.state_dict()}, save_init_path)
@@ -234,6 +272,8 @@ end_training = False
 
 run_time = tools.PerformanceCounter()
 tools.PerformanceCounter.reset(run_time)
+
+print("Starting training loop...")
 
 for epoch in range(epochs_num + 1):
 
