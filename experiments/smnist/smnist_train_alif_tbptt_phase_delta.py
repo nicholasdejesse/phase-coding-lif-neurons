@@ -18,15 +18,13 @@ from torch.optim.lr_scheduler import LambdaLR
 ################################################################
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cpu")
 
-if device == "cuda":
+if device.type == "cuda":
     pin_memory = True
     num_workers = 1
 else:
     pin_memory = False
     num_workers = 0
-
 print(device)
 
 ################################################################
@@ -39,6 +37,7 @@ parser.add_argument("--delta-base-threshold", type=float, default=0.5)
 parser.add_argument("--delta-wave-amplitude", type=float, default=0.4)
 parser.add_argument("--delta-wave-frequency", type=int, default=28 * 2) # In terms of time steps (i.e. one full oscillation completed at this timestep)
 parser.add_argument("--oscillate-threshold", action="store_true", help="Whether to oscillate the threshold or not.")
+parser.add_argument("--load", type=str, default=None, help="Path to load model checkpoint from.")
 
 args = parser.parse_args()
 
@@ -217,10 +216,19 @@ optimizer = torch.optim.Adam(model.parameters(), lr=optimizer_lr)
 # Number of iterations per epoch
 total_steps = len(train_loader)
 epochs_num = 300
+start_epoch = 0
+if args.load:
+    checkpoint = torch.load(args.load, map_location=device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    start_epoch = checkpoint["epoch"] + 1
+    print(f"Loaded model from {args.load}")
+
 padding = 0
 
 # learning rate scheduling
 scheduler = LambdaLR(optimizer, lr_lambda=lambda epoch: 1 - epoch / epochs_num)
+scheduler.step(start_epoch)
 learning_rates = []
 
 rand_num = random.randint(1, 10000)
@@ -251,11 +259,17 @@ else:
 print(start_time, comment)
 
 save_path_osc = "_binary_phase_oscillate.pt" if OSCILLATE_THRESHOLD else "_binary_phase.pt"
-save_path = "./experiments/smnist/models/{}_".format(start_time) + opt_str + "," + net_str + "," + unit_str + save_path_osc
-save_init_path = "./experiments/smnist/models/{}_init_".format(start_time) + opt_str + "," + net_str + "," + unit_str + save_path_osc
+# save_path = "./experiments/smnist/models/{}_".format(start_time) + f"Threshold_{DELTA_BASE_THRESHOLD}__Amplitude_{DELTA_WAVE_AMPLITUDE}__Frequency_{DELTA_WAVE_FREQUENCY}__{"True" if OSCILLATE_THRESHOLD else "False"}" + save_path_osc
+# save_init_path = "./experiments/smnist/models/{}_init_".format(start_time) + f"Threshold_{DELTA_BASE_THRESHOLD}__Amplitude_{DELTA_WAVE_AMPLITUDE}__Frequency_{DELTA_WAVE_FREQUENCY}__{"True" if OSCILLATE_THRESHOLD else "False"}" + save_path_osc
+
+if args.load:
+    save_path = args.load
+else:
+    save_path = "./experiments/smnist/models/{}_".format(start_time) + opt_str + "," + net_str + "," + unit_str + save_path_osc
 
 # save initial parameters for analysis
-torch.save({'model_state_dict': model.state_dict()}, save_init_path)
+if not args.load:
+    torch.save({'model_state_dict': model.state_dict()}, "./experiments/smnist/models/{}_init_".format(start_time) + opt_str + "," + net_str + "," + unit_str + save_path_osc)
 
 # print(model.state_dict())
 
@@ -275,7 +289,7 @@ tools.PerformanceCounter.reset(run_time)
 
 print("Starting training loop...")
 
-for epoch in range(epochs_num + 1):
+for epoch in range(start_epoch, epochs_num + 1):
 
     # Go into eval mode
     model.eval()

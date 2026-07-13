@@ -1,0 +1,4 @@
+cuda
+Loaded model from ./experiments/smnist/models/07-10_14-11-52_4246_Adam(0.001),PERMUTED(False),LinearLR,NLL,LL(True),TBPTT(50),RSNN(1,256,10,bs_256,ep_300,h_o_bias),ALIF(tau_m(20.0,5.0),tau_a(200.0,50.0),linearMask(0.0))LI(tau_m(20.0,5.0))_binary_phase_oscillate.pt
+07-13_14-22-33 1163_Adam(0.001),PERMUTED(False),LinearLR,NLL,LL(True),TBPTT(50),RSNN(1,256,10,bs_256,ep_300,h_o_bias),ALIF(tau_m(20.0,5.0),tau_a(200.0,50.0),linearMask(0.0))LI(tau_m(20.0,5.0))
+Starting training loop...
