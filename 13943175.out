@@ -2,3 +2,104 @@ cuda
 Loaded model from ./experiments/smnist/models/07-10_14-12-56_3553_Adam(0.001),PERMUTED(False),LinearLR,NLL,LL(True),TBPTT(50),RSNN(1,256,10,bs_256,ep_300,h_o_bias),ALIF(tau_m(20.0,5.0),tau_a(200.0,50.0),linearMask(0.0))LI(tau_m(20.0,5.0))_binary_phase.pt
 07-13_14-22-33 4341_Adam(0.001),PERMUTED(False),LinearLR,NLL,LL(True),TBPTT(50),RSNN(1,256,10,bs_256,ep_300,h_o_bias),ALIF(tau_m(20.0,5.0),tau_a(200.0,50.0),linearMask(0.0))LI(tau_m(20.0,5.0))
 Starting training loop...
+Epoch [ 251/ 300]  |  Summary  |  Loss/val: 0.330050, Accuracy/val: 90.1333%  |  Loss/test: 0.323713, Accuracy/test: 90.3300
+Epoch [ 252/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.898718, Accuracy/train:  90.1068
+Epoch [ 252/ 300]  |  Summary  |  Loss/val: 0.337497, Accuracy/val: 89.9000%  |  Loss/test: 0.331459, Accuracy/test: 90.0300
+Epoch [ 253/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.901150, Accuracy/train:  90.1354
+Epoch [ 253/ 300]  |  Summary  |  Loss/val: 0.320866, Accuracy/val: 90.5667%  |  Loss/test: 0.315587, Accuracy/test: 90.2800
+Epoch [ 254/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.895183, Accuracy/train:  90.1094
+Epoch [ 254/ 300]  |  Summary  |  Loss/val: 0.329594, Accuracy/val: 90.6833%  |  Loss/test: 0.318598, Accuracy/test: 90.5300
+Epoch [ 255/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.895472, Accuracy/train:  90.3099
+Epoch [ 255/ 300]  |  Summary  |  Loss/val: 0.341073, Accuracy/val: 89.8000%  |  Loss/test: 0.325953, Accuracy/test: 90.4800
+Epoch [ 256/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.897280, Accuracy/train:  90.2161
+Epoch [ 256/ 300]  |  Summary  |  Loss/val: 0.329408, Accuracy/val: 90.2500%  |  Loss/test: 0.325975, Accuracy/test: 90.0000
+Epoch [ 257/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.896298, Accuracy/train:  90.0651
+Epoch [ 257/ 300]  |  Summary  |  Loss/val: 0.330506, Accuracy/val: 90.2333%  |  Loss/test: 0.318707, Accuracy/test: 90.8000
+Epoch [ 258/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.901405, Accuracy/train:  90.0677
+Epoch [ 258/ 300]  |  Summary  |  Loss/val: 0.331417, Accuracy/val: 89.6833%  |  Loss/test: 0.323700, Accuracy/test: 90.1300
+Epoch [ 259/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.896640, Accuracy/train:  90.3359
+Epoch [ 259/ 300]  |  Summary  |  Loss/val: 0.337528, Accuracy/val: 89.9333%  |  Loss/test: 0.327499, Accuracy/test: 90.2300
+Epoch [ 260/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.897783, Accuracy/train:  90.0078
+Epoch [ 260/ 300]  |  Summary  |  Loss/val: 0.325472, Accuracy/val: 90.1500%  |  Loss/test: 0.317036, Accuracy/test: 90.4200
+Epoch [ 261/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.899718, Accuracy/train:  90.2682
+Epoch [ 261/ 300]  |  Summary  |  Loss/val: 0.324960, Accuracy/val: 89.8833%  |  Loss/test: 0.323131, Accuracy/test: 90.5800
+Epoch [ 262/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.894333, Accuracy/train:  90.2604
+Epoch [ 262/ 300]  |  Summary  |  Loss/val: 0.342674, Accuracy/val: 89.8167%  |  Loss/test: 0.342443, Accuracy/test: 89.9700
+Epoch [ 263/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.898022, Accuracy/train:  90.1484
+Epoch [ 263/ 300]  |  Summary  |  Loss/val: 0.334428, Accuracy/val: 89.7667%  |  Loss/test: 0.318908, Accuracy/test: 90.6300
+Epoch [ 264/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.896260, Accuracy/train:  90.3594
+Epoch [ 264/ 300]  |  Summary  |  Loss/val: 0.327888, Accuracy/val: 89.8667%  |  Loss/test: 0.319877, Accuracy/test: 90.4600
+Epoch [ 265/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.897571, Accuracy/train:  90.2760
+Epoch [ 265/ 300]  |  Summary  |  Loss/val: 0.331937, Accuracy/val: 90.2667%  |  Loss/test: 0.316970, Accuracy/test: 90.6800
+Epoch [ 266/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.896359, Accuracy/train:  90.3490
+Epoch [ 266/ 300]  |  Summary  |  Loss/val: 0.322712, Accuracy/val: 90.5667%  |  Loss/test: 0.310303, Accuracy/test: 90.9400
+Epoch [ 267/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.900481, Accuracy/train:  90.2552
+Epoch [ 267/ 300]  |  Summary  |  Loss/val: 0.334428, Accuracy/val: 90.1167%  |  Loss/test: 0.324938, Accuracy/test: 90.3500
+Epoch [ 268/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.894905, Accuracy/train:  90.2604
+Epoch [ 268/ 300]  |  Summary  |  Loss/val: 0.327898, Accuracy/val: 90.1667%  |  Loss/test: 0.316872, Accuracy/test: 90.4700
+Epoch [ 269/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.897889, Accuracy/train:  90.1719
+Epoch [ 269/ 300]  |  Summary  |  Loss/val: 0.325826, Accuracy/val: 90.4000%  |  Loss/test: 0.319812, Accuracy/test: 90.6100
+Epoch [ 270/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.892268, Accuracy/train:  90.3854
+Epoch [ 270/ 300]  |  Summary  |  Loss/val: 0.325197, Accuracy/val: 90.2500%  |  Loss/test: 0.311359, Accuracy/test: 90.6600
+Epoch [ 271/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.898492, Accuracy/train:  90.3594
+Epoch [ 271/ 300]  |  Summary  |  Loss/val: 0.323229, Accuracy/val: 90.6833%  |  Loss/test: 0.321970, Accuracy/test: 90.3700
+Epoch [ 272/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.895423, Accuracy/train:  90.2656
+Epoch [ 272/ 300]  |  Summary  |  Loss/val: 0.322090, Accuracy/val: 89.8333%  |  Loss/test: 0.317057, Accuracy/test: 90.5500
+Epoch [ 273/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.891917, Accuracy/train:  90.4349
+Epoch [ 273/ 300]  |  Summary  |  Loss/val: 0.334461, Accuracy/val: 89.8833%  |  Loss/test: 0.315369, Accuracy/test: 90.3500
+Epoch [ 274/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.908158, Accuracy/train:  90.1146
+Epoch [ 274/ 300]  |  Summary  |  Loss/val: 0.336532, Accuracy/val: 89.8333%  |  Loss/test: 0.321150, Accuracy/test: 90.5400
+Epoch [ 275/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.889423, Accuracy/train:  90.6927
+Epoch [ 275/ 300]  |  Summary  |  Loss/val: 0.327107, Accuracy/val: 90.2667%  |  Loss/test: 0.313597, Accuracy/test: 90.7300
+Epoch [ 276/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.897558, Accuracy/train:  90.3802
+Epoch [ 276/ 300]  |  Summary  |  Loss/val: 0.329936, Accuracy/val: 90.2500%  |  Loss/test: 0.320167, Accuracy/test: 90.3300
+Epoch [ 277/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.892157, Accuracy/train:  90.6432
+Epoch [ 277/ 300]  |  Summary  |  Loss/val: 0.332936, Accuracy/val: 90.0167%  |  Loss/test: 0.325734, Accuracy/test: 90.4000
+Epoch [ 278/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.894200, Accuracy/train:  90.2708
+Epoch [ 278/ 300]  |  Summary  |  Loss/val: 0.338500, Accuracy/val: 89.7167%  |  Loss/test: 0.326906, Accuracy/test: 90.0900
+Epoch [ 279/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.893885, Accuracy/train:  90.5521
+Epoch [ 279/ 300]  |  Summary  |  Loss/val: 0.326938, Accuracy/val: 89.8667%  |  Loss/test: 0.320231, Accuracy/test: 90.2300
+Epoch [ 280/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.906511, Accuracy/train:  90.1068
+Epoch [ 280/ 300]  |  Summary  |  Loss/val: 0.341382, Accuracy/val: 89.6167%  |  Loss/test: 0.329498, Accuracy/test: 90.1000
+Epoch [ 281/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.901041, Accuracy/train:  90.3490
+Epoch [ 281/ 300]  |  Summary  |  Loss/val: 0.334753, Accuracy/val: 89.9000%  |  Loss/test: 0.323755, Accuracy/test: 90.0800
+Epoch [ 282/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.907007, Accuracy/train:  90.2188
+Epoch [ 282/ 300]  |  Summary  |  Loss/val: 0.336208, Accuracy/val: 89.5333%  |  Loss/test: 0.316012, Accuracy/test: 90.5600
+Epoch [ 283/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.897264, Accuracy/train:  90.2031
+Epoch [ 283/ 300]  |  Summary  |  Loss/val: 0.323434, Accuracy/val: 90.4333%  |  Loss/test: 0.316160, Accuracy/test: 90.5600
+Epoch [ 284/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.895817, Accuracy/train:  90.3099
+Epoch [ 284/ 300]  |  Summary  |  Loss/val: 0.335676, Accuracy/val: 90.0000%  |  Loss/test: 0.316871, Accuracy/test: 90.5900
+Epoch [ 285/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.898169, Accuracy/train:  90.3854
+Epoch [ 285/ 300]  |  Summary  |  Loss/val: 0.325434, Accuracy/val: 90.2167%  |  Loss/test: 0.315732, Accuracy/test: 90.6900
+Epoch [ 286/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.898343, Accuracy/train:  90.3958
+Epoch [ 286/ 300]  |  Summary  |  Loss/val: 0.323087, Accuracy/val: 90.2333%  |  Loss/test: 0.318673, Accuracy/test: 90.6900
+Epoch [ 287/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.895151, Accuracy/train:  90.2630
+Epoch [ 287/ 300]  |  Summary  |  Loss/val: 0.322572, Accuracy/val: 90.6333%  |  Loss/test: 0.315441, Accuracy/test: 90.6000
+Epoch [ 288/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.888749, Accuracy/train:  90.6276
+Epoch [ 288/ 300]  |  Summary  |  Loss/val: 0.318787, Accuracy/val: 90.4833%  |  Loss/test: 0.311325, Accuracy/test: 91.0000
+Epoch [ 289/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.892989, Accuracy/train:  90.4219
+Epoch [ 289/ 300]  |  Summary  |  Loss/val: 0.330861, Accuracy/val: 90.3667%  |  Loss/test: 0.323876, Accuracy/test: 90.6300
+Epoch [ 290/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.892884, Accuracy/train:  90.5651
+Epoch [ 290/ 300]  |  Summary  |  Loss/val: 0.335354, Accuracy/val: 90.2000%  |  Loss/test: 0.318813, Accuracy/test: 90.4800
+Epoch [ 291/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.897275, Accuracy/train:  90.3932
+Epoch [ 291/ 300]  |  Summary  |  Loss/val: 0.332926, Accuracy/val: 89.9500%  |  Loss/test: 0.316499, Accuracy/test: 90.3500
+Epoch [ 292/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.890300, Accuracy/train:  90.5521
+Epoch [ 292/ 300]  |  Summary  |  Loss/val: 0.327260, Accuracy/val: 90.2167%  |  Loss/test: 0.315184, Accuracy/test: 90.7800
+Epoch [ 293/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.892710, Accuracy/train:  90.4661
+Epoch [ 293/ 300]  |  Summary  |  Loss/val: 0.322416, Accuracy/val: 90.4000%  |  Loss/test: 0.310101, Accuracy/test: 90.6800
+Epoch [ 294/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.891238, Accuracy/train:  90.6641
+Epoch [ 294/ 300]  |  Summary  |  Loss/val: 0.324486, Accuracy/val: 90.3167%  |  Loss/test: 0.321314, Accuracy/test: 90.5000
+Epoch [ 295/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.892820, Accuracy/train:  90.5521
+Epoch [ 295/ 300]  |  Summary  |  Loss/val: 0.328735, Accuracy/val: 90.3833%  |  Loss/test: 0.320261, Accuracy/test: 90.6500
+Epoch [ 296/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.903265, Accuracy/train:  90.3698
+Epoch [ 296/ 300]  |  Summary  |  Loss/val: 0.319570, Accuracy/val: 90.4833%  |  Loss/test: 0.312888, Accuracy/test: 90.7200
+Epoch [ 297/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.896116, Accuracy/train:  90.3672
+Epoch [ 297/ 300]  |  Summary  |  Loss/val: 0.322572, Accuracy/val: 90.4500%  |  Loss/test: 0.315769, Accuracy/test: 90.8100
+Epoch [ 298/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.891779, Accuracy/train:  90.6510
+Epoch [ 298/ 300]  |  Summary  |  Loss/val: 0.322793, Accuracy/val: 90.4333%  |  Loss/test: 0.308423, Accuracy/test: 91.1200
+Epoch [ 299/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.892283, Accuracy/train:  90.5703
+Epoch [ 299/ 300]  |  Summary  |  Loss/val: 0.332095, Accuracy/val: 89.8667%  |  Loss/test: 0.312239, Accuracy/test: 91.0600
+Epoch [ 300/ 300]  |  Step [ 150/ 211]  |  Loss/train: 0.890852, Accuracy/train:  90.6302
+Epoch [ 300/ 300]  |  Summary  |  Loss/val: 0.326550, Accuracy/val: 90.2500%  |  Loss/test: 0.315806, Accuracy/test: 90.7200
+Minimum val loss: 0.318787 at epoch: 288
+6.633068663822746 hr
