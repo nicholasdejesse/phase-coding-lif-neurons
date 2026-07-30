@@ -24,8 +24,7 @@ def smnist_transform_input_batch(
     tensor = tensor.view(batch_size_, sequence_length_, input_size_)  # BxTxC
     tensor = tensor.permute(1, 0, 2)  # TxBxC
     tensor = tensor[permuted_idx_, :, :]
-
-    # Delta between time steps
+    # Get delta between time steps
     tensor = tensor - tensor.roll(1, 0)
     tensor[0] = 0
 
@@ -84,7 +83,11 @@ def smnist_transform_input_batch(
         )
 
     return pos_spike + neg_spike
-    
+
+
+length = 100
+test_tensor = torch.rand(length).unsqueeze(dim=0).unsqueeze(dim=0)
+y = smnist_transform_input_batch(test_tensor, length, 1, 1, torch.arange(length))    
 
 sequence_length = 28 * 28
 input_size = 1

@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader, random_split
 import tools
 from datetime import datetime
 import math
+import argparse
 
 import sys
 sys.path.append("../..")
@@ -17,26 +18,42 @@ from torch.optim.lr_scheduler import LambdaLR
 ################################################################
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cpu")
 
-if device == "cuda":
+if device.type == "cuda":
     pin_memory = True
     num_workers = 1
 else:
     pin_memory = False
     num_workers = 0
-
 print(device)
+
+################################################################
+# Argparse
+################################################################
+
+parser = argparse.ArgumentParser(description="Train ALIF RNN with phase delta coding.")
+
+parser.add_argument("--delta-base-threshold", type=float, default=0.5)
+parser.add_argument("--delta-wave-amplitude", type=float, default=0.4)
+parser.add_argument("--delta-wave-frequency", type=int, default=28 * 2) # In terms of time steps (i.e. one full oscillation completed at this timestep)
+parser.add_argument("--oscillate-threshold", action="store_true", help="Whether to oscillate the threshold or not.")
+parser.add_argument("--negative-at-trough", action="store_true", help="Whether to weight negative spikes at the trough of the oscillation.")
+parser.add_argument("--load", type=str, default=None, help="Path to load model checkpoint from.")
+
+args = parser.parse_args()
 
 ################################################################
 # Data loading and preparation, logging
 ################################################################
 
 PERMUTED = False
-DELTA_BASE_THRESHOLD = 0.3
-OSCILLATE_THRESHOLD = True
-DELTA_WAVE_AMPLITUDE = 0.2
-DELTA_WAVE_FREQUENCY = 7 # In terms of time steps (i.e. one full oscillation completed at this timestep)
+DELTA_BASE_THRESHOLD = args.delta_base_threshold
+DELTA_WAVE_AMPLITUDE = args.delta_wave_amplitude
+DELTA_WAVE_FREQUENCY = args.delta_wave_frequency
+OSCILLATE_THRESHOLD = args.oscillate_threshold
+NEGATIVE_AT_TROUGH = args.negative_at_trough
+
+print(f"Permuted: {PERMUTED}, Delta Base Threshold: {DELTA_BASE_THRESHOLD}, Delta Wave Amplitude: {DELTA_WAVE_AMPLITUDE}, Delta Wave Frequency: {DELTA_WAVE_FREQUENCY}, Oscillate Threshold: {OSCILLATE_THRESHOLD}, Negative at Trough: {NEGATIVE_AT_TROUGH}")
 
 label_last = True
 
@@ -108,20 +125,72 @@ def smnist_transform_input_batch(
         input_size_: int,
         permuted_idx_: torch.Tensor
 ):
-    tensor = tensor.view(batch_size_, sequence_length_, input_size_) # BxTxC
-    tensor = tensor.permute(1, 0, 2) # TxBxC
-    tensor = tensor[permuted_idx_, :, :]
-    # Get delta between time steps
-    tensor = tensor - tensor.roll(1, 0)
-    tensor[0, :, :] = 0
-    if OSCILLATE_THRESHOLD:
-        sin = torch.sin(2 * torch.pi * torch.arange(sequence_length_, dtype=torch.float64) / DELTA_WAVE_FREQUENCY)
-        sin = DELTA_WAVE_AMPLITUDE * sin
-        sin = sin[:, None, None].expand(-1, batch_size_, input_size_)
-        tensor = tensor - sin
-    tensor = torch.where(tensor > DELTA_BASE_THRESHOLD, 1, 0)
-    return tensor
+    tensor = tensor.view(batch_size_, sequence_length_, input_size_)  # BxTxC
+    tensor = tensor.permute(1, 0, 2)  # TxBxC
+    tensor = tensor[permuted_idx_.to(device), :, :]
 
+    # Delta between time steps
+    tensor = tensor - tensor.roll(1, 0)
+    tensor[0] = 0
+
+    if NEGATIVE_AT_TROUGH:
+        if OSCILLATE_THRESHOLD:
+            wave = torch.sin(
+                2 * torch.pi *
+                torch.arange(
+                    sequence_length_,
+                    device=device,
+                    dtype=tensor.dtype
+                ) / DELTA_WAVE_FREQUENCY
+            )
+            pos_threshold = DELTA_BASE_THRESHOLD - DELTA_WAVE_AMPLITUDE * wave
+            neg_threshold = DELTA_BASE_THRESHOLD + DELTA_WAVE_AMPLITUDE * wave
+            pos_threshold = pos_threshold[:, None, None].expand(-1, batch_size_, input_size_)
+            neg_threshold = neg_threshold[:, None, None].expand(-1, batch_size_, input_size_)
+        else:
+            pos_threshold = DELTA_BASE_THRESHOLD
+            neg_threshold = DELTA_BASE_THRESHOLD
+        pos_spike = torch.where(
+            tensor > pos_threshold,
+            torch.ones_like(tensor),
+            torch.zeros_like(tensor)
+        )
+        neg_spike = torch.where(
+            tensor < -neg_threshold,
+            -torch.ones_like(tensor),
+            torch.zeros_like(tensor)
+        )
+
+    else:
+        if OSCILLATE_THRESHOLD:
+            wave = torch.sin(
+                2 * torch.pi *
+                torch.arange(
+                    sequence_length_,
+                    device=device,
+                    dtype=tensor.dtype
+                ) / DELTA_WAVE_FREQUENCY
+            )
+
+            threshold = DELTA_BASE_THRESHOLD - DELTA_WAVE_AMPLITUDE * wave
+            threshold = threshold[:, None, None].expand(-1, batch_size_, input_size_)
+        else:
+            threshold = DELTA_BASE_THRESHOLD
+
+        pos_spike = torch.where(
+            tensor > threshold,
+            torch.ones_like(tensor),
+            torch.zeros_like(tensor)
+        )
+
+        neg_spike = torch.where(
+            tensor < -threshold,
+            -torch.ones_like(tensor),
+            torch.zeros_like(tensor)
+        )
+
+    return pos_spike + neg_spike
+    
 ################################################################
 # Model helpers and model setup
 ################################################################
@@ -180,10 +249,19 @@ optimizer = torch.optim.Adam(model.parameters(), lr=optimizer_lr)
 # Number of iterations per epoch
 total_steps = len(train_loader)
 epochs_num = 300
+start_epoch = 0
+if args.load:
+    checkpoint = torch.load(args.load, map_location=device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    start_epoch = checkpoint["epoch"] + 1
+    print(f"Loaded model from {args.load}")
+
 padding = 0
 
 # learning rate scheduling
 scheduler = LambdaLR(optimizer, lr_lambda=lambda epoch: 1 - epoch / epochs_num)
+scheduler.step(start_epoch)
 learning_rates = []
 
 rand_num = random.randint(1, 10000)
@@ -213,11 +291,32 @@ else:
 
 print(start_time, comment)
 
-save_path = "models/{}_".format(start_time) + opt_str + "," + net_str + "," + unit_str + "_binary_phase.pt"
-save_init_path = "models/{}_init_".format(start_time) + opt_str + "," + net_str + "," + unit_str + "_binary_phase.pt"
+negative_at_trough = "True" if NEGATIVE_AT_TROUGH else "False"
+save_path_osc = "_binary_phase_oscillate.pt" if OSCILLATE_THRESHOLD else "_binary_phase.pt"
+
+save_path = (
+    f"./experiments/smnist/models/{start_time}_"
+    f"Threshold_{DELTA_BASE_THRESHOLD}"
+    f"__Amplitude_{DELTA_WAVE_AMPLITUDE}"
+    f"__Frequency_{DELTA_WAVE_FREQUENCY}"
+    f"__{negative_at_trough}"
+    f"{save_path_osc}"
+)
+
+save_init_path = (
+    f"./experiments/smnist/models/{start_time}_init_"
+    f"Threshold_{DELTA_BASE_THRESHOLD}"
+    f"__Amplitude_{DELTA_WAVE_AMPLITUDE}"
+    f"__Frequency_{DELTA_WAVE_FREQUENCY}"
+    f"__{negative_at_trough}"
+    f"{save_path_osc}"
+)
+if args.load:
+    save_path = args.load
 
 # save initial parameters for analysis
-torch.save({'model_state_dict': model.state_dict()}, save_init_path)
+if not args.load:
+    torch.save({'model_state_dict': model.state_dict()}, save_init_path)
 
 # print(model.state_dict())
 
@@ -235,7 +334,9 @@ end_training = False
 run_time = tools.PerformanceCounter()
 tools.PerformanceCounter.reset(run_time)
 
-for epoch in range(epochs_num + 1):
+print("Starting training loop...")
+
+for epoch in range(start_epoch, epochs_num + 1):
 
     # Go into eval mode
     model.eval()

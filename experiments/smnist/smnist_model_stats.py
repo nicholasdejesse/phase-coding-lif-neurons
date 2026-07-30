@@ -7,6 +7,7 @@ import os
 import sys
 sys.path.append("../..")
 import snn
+import argparse
 
 ################################################################
 # General settings
@@ -25,11 +26,29 @@ else:
 print(device)
 
 ################################################################
+# Argparse
+################################################################
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--load", type=str, help="Path to the model to load")
+parser.add_argument("--delta-base-threshold", type=float, default=0.2)
+parser.add_argument("--delta-wave-amplitude", type=float, default=0.15)
+parser.add_argument("--delta-wave-frequency", type=int, default=28 * 2) # In terms of time steps (i.e. one full oscillation completed at this timestep)
+parser.add_argument("--oscillate-threshold", action="store_true", help="Whether to oscillate the threshold or not.")
+parser.add_argument("--negative-at-trough", action="store_true")
+args = parser.parse_args()
+
+################################################################
 # Data loading and preparation, logging
 ################################################################
 
 # if True, S-MNIST, if False, PS-MNIST
 PERMUTED = False
+DELTA_BASE_THRESHOLD = args.delta_base_threshold
+DELTA_WAVE_AMPLITUDE = args.delta_wave_amplitude
+DELTA_WAVE_FREQUENCY = args.delta_wave_frequency
+OSCILLATE_THRESHOLD = args.oscillate_threshold
+NEGATIVE_AT_TROUGH = args.negative_at_trough
 
 # Change neuron type manually for different models
 # VRF: vanilla RF neuron set to: no reset mechanisms.
@@ -60,6 +79,18 @@ test_loader = torch.utils.data.DataLoader(
 )
 
 
+# def smnist_transform_input_batch(
+#         tensor: torch.Tensor,
+#         sequence_length_: int,
+#         batch_size_: int,
+#         input_size_: int,
+#         permuted_idx_: torch.Tensor
+# ):
+#     tensor = tensor.to(device=device).view(batch_size_, sequence_length_, input_size_)
+#     tensor = tensor.permute(1, 0, 2)
+#     tensor = tensor[permuted_idx_, :, :]
+#     return tensor
+
 def smnist_transform_input_batch(
         tensor: torch.Tensor,
         sequence_length_: int,
@@ -67,10 +98,71 @@ def smnist_transform_input_batch(
         input_size_: int,
         permuted_idx_: torch.Tensor
 ):
-    tensor = tensor.to(device=device).view(batch_size_, sequence_length_, input_size_)
-    tensor = tensor.permute(1, 0, 2)
-    tensor = tensor[permuted_idx_, :, :]
-    return tensor
+    tensor = tensor.view(batch_size_, sequence_length_, input_size_)  # BxTxC
+    tensor = tensor.permute(1, 0, 2)  # TxBxC
+    tensor = tensor[permuted_idx_.to(device), :, :]
+
+    # Delta between time steps
+    tensor = tensor - tensor.roll(1, 0)
+    tensor[0] = 0
+
+    if NEGATIVE_AT_TROUGH:
+        if OSCILLATE_THRESHOLD:
+            wave = torch.sin(
+                2 * torch.pi *
+                torch.arange(
+                    sequence_length_,
+                    device=device,
+                    dtype=tensor.dtype
+                ) / DELTA_WAVE_FREQUENCY
+            )
+            pos_threshold = DELTA_BASE_THRESHOLD - DELTA_WAVE_AMPLITUDE * wave
+            neg_threshold = DELTA_BASE_THRESHOLD + DELTA_WAVE_AMPLITUDE * wave
+            pos_threshold = pos_threshold[:, None, None].expand(-1, batch_size_, input_size_)
+            neg_threshold = neg_threshold[:, None, None].expand(-1, batch_size_, input_size_)
+        else:
+            pos_threshold = DELTA_BASE_THRESHOLD
+            neg_threshold = DELTA_BASE_THRESHOLD
+        pos_spike = torch.where(
+            tensor > pos_threshold,
+            torch.ones_like(tensor),
+            torch.zeros_like(tensor)
+        )
+        neg_spike = torch.where(
+            tensor < -neg_threshold,
+            -torch.ones_like(tensor),
+            torch.zeros_like(tensor)
+        )
+
+    else:
+        if OSCILLATE_THRESHOLD:
+            wave = torch.sin(
+                2 * torch.pi *
+                torch.arange(
+                    sequence_length_,
+                    device=device,
+                    dtype=tensor.dtype
+                ) / DELTA_WAVE_FREQUENCY
+            )
+
+            threshold = DELTA_BASE_THRESHOLD - DELTA_WAVE_AMPLITUDE * wave
+            threshold = threshold[:, None, None].expand(-1, batch_size_, input_size_)
+        else:
+            threshold = DELTA_BASE_THRESHOLD
+
+        pos_spike = torch.where(
+            tensor > threshold,
+            torch.ones_like(tensor),
+            torch.zeros_like(tensor)
+        )
+
+        neg_spike = torch.where(
+            tensor < -threshold,
+            -torch.ones_like(tensor),
+            torch.zeros_like(tensor)
+        )
+
+    return pos_spike + neg_spike
 
 
 ################################################################
@@ -134,18 +226,51 @@ else:
         comment = 'Adam(0.001),PERMUTED(False),LinearLR,NLL,LabelLast(True),TBPTT(50),RSNN(1,256,10,bs_256,ep_300,' \
                   'no_bias),ALIF(tau_m(20.0,5.0),tau_a(200.0,50.0),linearMask(0.0))LI(tau_m(20.0,5.0))'
 
-    model = snn.models.SimpleALIFRNN(
+
+    # recorded into comment
+    # fraction of the elements in the hidden.linear.weight to be zero
+    mask_prob = 0.0
+
+    # ALIF alpha tau_mem init normal dist.
+    adaptive_tau_mem_mean = 20.
+    adaptive_tau_mem_std = 5.
+
+    # ALIF rho tau_adp init normal dist.
+    adaptive_tau_adp_mean = 200.
+    adaptive_tau_adp_std = 50.
+
+    # LI alpha tau_mem init normal distribution
+    out_adaptive_tau_mem_mean = 20.
+    out_adaptive_tau_mem_std = 5.
+
+    hidden_bias = True
+    output_bias = True
+
+    tbptt_steps = 50
+
+    criterion = torch.nn.NLLLoss()
+
+    model = snn.models.SimpleALIFRNNTbptt(
         input_size=input_size,
         hidden_size=hidden_size,
         output_size=num_classes,
-        label_last=label_last,
-        pruning=True
+        mask_prob=0.0,
+        criterion=criterion,
+        adaptive_tau_mem_mean=20.,
+        adaptive_tau_mem_std=5.,
+        adaptive_tau_adp_mean=200.,
+        adaptive_tau_adp_std=50.,
+        out_adaptive_tau_mem_mean=20.,
+        out_adaptive_tau_mem_std=5.,
+        label_last=True,
+        hidden_bias=True,
+        output_bias=True,
+        tbptt_steps=50
     ).to(device)
-
 
 criterion = torch.nn.NLLLoss()
 
-path = './models/'
+path = './experiments/smnist/models/'
 
 models_str = [f for f in os.listdir(path) if comment in f]
 
@@ -157,11 +282,14 @@ print(models_str)
 
 # PSMNIST fixed random permutation
 if PERMUTED and "vrf" not in neuron:
-    permuted_idx = torch.load('./models/{}'.format(models_str[0][:14]) + comment + '_permuted_idx.pt')
+    permuted_idx = torch.load('./experiments/smnist/models/{}'.format(models_str[0][:14]) + comment + '_permuted_idx.pt')
 else:
     permuted_idx = torch.arange(sequence_length)
 
-PATH = "./models/" + models_str[0]
+if args.load:
+    PATH = args.load
+else:
+    PATH = "./experiments/smnist/models/" + models_str[0]
 
 checkpoint = torch.load(PATH, map_location=device)
 model.load_state_dict(checkpoint['model_state_dict'])
@@ -192,7 +320,7 @@ with torch.no_grad():
     # Reshape targets (for MNIST it's a single pattern).
     target = targets.to(device=device)
 
-    outputs, _, num_spikes = model(inputs)
+    outputs, _, num_spikes = model(inputs, target.repeat((sequence_length, 1)))
 
 total_spikes += num_spikes
 

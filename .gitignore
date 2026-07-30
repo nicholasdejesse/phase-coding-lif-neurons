@@ -1,6 +1,9 @@
 .ipynb_checkpoints
 .idea
 .vs
+*.err
+*.out
+*.sh
 
 __pycache__
 
