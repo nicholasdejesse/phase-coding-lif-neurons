@@ -35,7 +35,7 @@ parser = argparse.ArgumentParser(description="Train ALIF RNN with phase delta co
 
 parser.add_argument("--delta-base-threshold", type=float, default=0.5)
 parser.add_argument("--delta-wave-amplitude", type=float, default=0.4)
-parser.add_argument("--delta-wave-frequency", type=int, default=28 * 2) # In terms of time steps (i.e. one full oscillation completed at this timestep)
+parser.add_argument("--delta-wave-period", type=int, default=28 * 2) # In terms of time steps (i.e. one full oscillation completed at this timestep)
 parser.add_argument("--oscillate-threshold", action="store_true", help="Whether to oscillate the threshold or not.")
 parser.add_argument("--negative-at-trough", action="store_true", help="Whether to weight negative spikes at the trough of the oscillation.")
 parser.add_argument("--load", type=str, default=None, help="Path to load model checkpoint from.")
@@ -49,11 +49,11 @@ args = parser.parse_args()
 PERMUTED = False
 DELTA_BASE_THRESHOLD = args.delta_base_threshold
 DELTA_WAVE_AMPLITUDE = args.delta_wave_amplitude
-DELTA_WAVE_FREQUENCY = args.delta_wave_frequency
+DELTA_WAVE_PERIOD = args.delta_wave_period
 OSCILLATE_THRESHOLD = args.oscillate_threshold
 NEGATIVE_AT_TROUGH = args.negative_at_trough
 
-print(f"Permuted: {PERMUTED}, Delta Base Threshold: {DELTA_BASE_THRESHOLD}, Delta Wave Amplitude: {DELTA_WAVE_AMPLITUDE}, Delta Wave Frequency: {DELTA_WAVE_FREQUENCY}, Oscillate Threshold: {OSCILLATE_THRESHOLD}, Negative at Trough: {NEGATIVE_AT_TROUGH}")
+print(f"Permuted: {PERMUTED}, Delta Base Threshold: {DELTA_BASE_THRESHOLD}, Delta Wave Amplitude: {DELTA_WAVE_AMPLITUDE}, Delta Wave Period: {DELTA_WAVE_PERIOD}, Oscillate Threshold: {OSCILLATE_THRESHOLD}, Negative at Trough: {NEGATIVE_AT_TROUGH}")
 
 label_last = True
 
@@ -141,7 +141,7 @@ def smnist_transform_input_batch(
                     sequence_length_,
                     device=device,
                     dtype=tensor.dtype
-                ) / DELTA_WAVE_FREQUENCY
+                ) / DELTA_WAVE_PERIOD
             )
             pos_threshold = DELTA_BASE_THRESHOLD - DELTA_WAVE_AMPLITUDE * wave
             neg_threshold = DELTA_BASE_THRESHOLD + DELTA_WAVE_AMPLITUDE * wave
@@ -169,7 +169,7 @@ def smnist_transform_input_batch(
                     sequence_length_,
                     device=device,
                     dtype=tensor.dtype
-                ) / DELTA_WAVE_FREQUENCY
+                ) / DELTA_WAVE_PERIOD
             )
 
             threshold = DELTA_BASE_THRESHOLD - DELTA_WAVE_AMPLITUDE * wave
@@ -298,7 +298,7 @@ save_path = (
     f"./experiments/smnist/models/{start_time}_"
     f"Threshold_{DELTA_BASE_THRESHOLD}"
     f"__Amplitude_{DELTA_WAVE_AMPLITUDE}"
-    f"__Frequency_{DELTA_WAVE_FREQUENCY}"
+    f"__Frequency_{DELTA_WAVE_PERIOD}"
     f"__{negative_at_trough}"
     f"{save_path_osc}"
 )
@@ -307,7 +307,7 @@ save_init_path = (
     f"./experiments/smnist/models/{start_time}_init_"
     f"Threshold_{DELTA_BASE_THRESHOLD}"
     f"__Amplitude_{DELTA_WAVE_AMPLITUDE}"
-    f"__Frequency_{DELTA_WAVE_FREQUENCY}"
+    f"__Frequency_{DELTA_WAVE_PERIOD}"
     f"__{negative_at_trough}"
     f"{save_path_osc}"
 )

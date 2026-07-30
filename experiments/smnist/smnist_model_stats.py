@@ -31,11 +31,11 @@ print(device)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--load", type=str, help="Path to the model to load")
-parser.add_argument("--delta-base-threshold", type=float, default=0.2)
+parser.add_argument("--delta-base-threshold", type=float, default=0.2, help="Base threshold to oscillate around (or for delta modulation, just the normal threshold).")
 parser.add_argument("--delta-wave-amplitude", type=float, default=0.15)
-parser.add_argument("--delta-wave-frequency", type=int, default=28 * 2) # In terms of time steps (i.e. one full oscillation completed at this timestep)
-parser.add_argument("--oscillate-threshold", action="store_true", help="Whether to oscillate the threshold or not.")
-parser.add_argument("--negative-at-trough", action="store_true")
+parser.add_argument("--delta-wave-period", type=int, default=28 * 2) # In terms of time steps (i.e. one full oscillation completed at this timestep)
+parser.add_argument("--oscillate-threshold", action="store_true", help="Oscillate threshold (omit this argument for traditional delta modulation).")
+parser.add_argument("--negative-at-trough", action="store_true", help="Align negative spikes to trough of oscillation.")
 args = parser.parse_args()
 
 ################################################################
@@ -43,10 +43,11 @@ args = parser.parse_args()
 ################################################################
 
 # if True, S-MNIST, if False, PS-MNIST
+NUM_BITS = 8 # Number of bits to encode input frames as
 PERMUTED = False
 DELTA_BASE_THRESHOLD = args.delta_base_threshold
 DELTA_WAVE_AMPLITUDE = args.delta_wave_amplitude
-DELTA_WAVE_FREQUENCY = args.delta_wave_frequency
+DELTA_WAVE_PERIOD = args.delta_wave_period
 OSCILLATE_THRESHOLD = args.oscillate_threshold
 NEGATIVE_AT_TROUGH = args.negative_at_trough
 
@@ -78,6 +79,27 @@ test_loader = torch.utils.data.DataLoader(
     shuffle=False
 )
 
+# UNCOMMENT THIS WHEN TESTING BINARY CODING (AND COMMENT OUT OTHER smnist_transform_input_batch BELOW)
+# def binary_phase_encode(tensor: torch.Tensor, num_bits: int):
+#     """
+#     tensor: [seq_len, batch, input_size], integer-valued in [0, 255] (uint8 or long)
+#     num_bits: number of bits to extract (<=8 for raw MNIST pixels; use 8 for lossless)
+#     """
+#     seq_len, batch, in_size = tensor.shape
+#     device_ = tensor.device
+
+#     levels = tensor.long()
+#     if num_bits < 8:
+#         # if using fewer than 8 bits, keep the MOST significant bits
+#         # (drop low-order bits rather than rescaling/rounding)
+#         levels = levels >> (8 - num_bits)
+#     levels = levels.clamp(0, 2**num_bits - 1)
+
+#     shifts = torch.arange(num_bits - 1, -1, -1, device=device_)
+#     bits = ((levels.unsqueeze(-1) >> shifts) & 1).float()
+#     spikes = bits.permute(0, 3, 1, 2).reshape(seq_len * num_bits, batch, in_size)
+
+#     return spikes
 
 # def smnist_transform_input_batch(
 #         tensor: torch.Tensor,
@@ -89,6 +111,7 @@ test_loader = torch.utils.data.DataLoader(
 #     tensor = tensor.to(device=device).view(batch_size_, sequence_length_, input_size_)
 #     tensor = tensor.permute(1, 0, 2)
 #     tensor = tensor[permuted_idx_, :, :]
+#     tensor = binary_phase_encode(tensor, NUM_BITS)
 #     return tensor
 
 def smnist_transform_input_batch(
@@ -114,7 +137,7 @@ def smnist_transform_input_batch(
                     sequence_length_,
                     device=device,
                     dtype=tensor.dtype
-                ) / DELTA_WAVE_FREQUENCY
+                ) / DELTA_WAVE_PERIOD
             )
             pos_threshold = DELTA_BASE_THRESHOLD - DELTA_WAVE_AMPLITUDE * wave
             neg_threshold = DELTA_BASE_THRESHOLD + DELTA_WAVE_AMPLITUDE * wave
@@ -142,7 +165,7 @@ def smnist_transform_input_batch(
                     sequence_length_,
                     device=device,
                     dtype=tensor.dtype
-                ) / DELTA_WAVE_FREQUENCY
+                ) / DELTA_WAVE_PERIOD
             )
 
             threshold = DELTA_BASE_THRESHOLD - DELTA_WAVE_AMPLITUDE * wave
